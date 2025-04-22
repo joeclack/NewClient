@@ -15,13 +15,14 @@ namespace NewClient.UI
 		{
 			while(true)
 			{
-				Console.WriteLine("Simulation Control:");
-				Console.WriteLine("1. Control Fan");
-				Console.WriteLine("2. Control Heater");
-				Console.WriteLine("3. Read Temperature");
-				Console.WriteLine("4. Display State of All Devices");
-				Console.WriteLine("5. Control Simulation");
-				Console.WriteLine("6. Reset Simulation");
+				Console.WriteLine("\n=== Simulation Control Menu ===");
+				Console.WriteLine(" 1. Control Fan");
+				Console.WriteLine(" 2. Control Heater");
+				Console.WriteLine(" 3. Read Temperature");
+				Console.WriteLine(" 4. Display State of All Devices");
+				Console.WriteLine(" 5. Control Simulation");
+				Console.WriteLine(" 6. Reset Simulation");
+				Console.WriteLine("===============================");
 				Console.Write("Select an option: ");
 
 				var input = Console.ReadLine();

@@ -1,13 +1,16 @@
 ﻿using NewClient.Commands;
 using NewClient.Controllers;
 using NewClient.UI;
+using System.Net.NetworkInformation;
 static class Program
 {
 	static async Task Main(string[] args)
 	{
+		var baseAddress = "https://localhost:44351/api";
+
 		HttpClient client = new()
 		{
-			BaseAddress = new Uri("https://localhost:44351/"),
+			BaseAddress = new Uri(baseAddress),
 		};
 		client.DefaultRequestHeaders.Add("X-Api-Key", "API_KEY_CLIENT_3");
 
