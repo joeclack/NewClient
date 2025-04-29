@@ -34,9 +34,9 @@ namespace NewClient.Devices
             }
         }
 
-        public Task SetState(bool state) => Task.CompletedTask; // Sensors can't be turned on/off
-        public Task<int> GetLevel() => Task.FromResult(0); // Sensors don't have levels
-        public Task SetLevel(int level) => Task.CompletedTask; // Sensors don't have levels
+        public Task SetState(bool state) => Task.CompletedTask;
+        public Task<int> GetLevel() => Task.FromResult(0);
+        public Task SetLevel(int level) => Task.CompletedTask;
 
         public async Task<double> GetTemperature()
         {
