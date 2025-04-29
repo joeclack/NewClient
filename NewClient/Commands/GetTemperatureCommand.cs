@@ -13,12 +13,18 @@ namespace NewClient.Commands
 
 		public async Task ExecuteAsync()
 		{
-			Console.Write("Enter Sensor Number: ");
-			if ( int.TryParse(Console.ReadLine(), out int sensorId) )
+			try
 			{
-				double temperature = await _environmentController.GetSensorTemperature(sensorId);
-			}
-			else
+				Console.Write("Enter Sensor Number: ");
+				if ( int.TryParse(Console.ReadLine(), out int sensorId) )
+				{
+					if ( sensorId < 1 || sensorId > 3 )
+					{
+						throw new ArgumentOutOfRangeException(nameof(sensorId), "Sensor ID must be between 1 and 3");
+					}
+					double temperature = await _environmentController.GetSensorTemperature(sensorId);
+				}
+			} catch 
 			{
 				Console.WriteLine("Invalid Sensor Number.");
 			}

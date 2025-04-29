@@ -30,10 +30,10 @@ static class Program
 		});
 		var logger = loggerFactory.CreateLogger<EnvironmentController>();
 
-		// Test log message
+
 		logger.LogInformation("Application started at {Time}", DateTime.Now);
 
-		var baseAddress = "http://localhost:5000/api";
+		var baseAddress = configuration.GetValue<string>("Environment:BaseAddress");
 
 		HttpClient client = new()
 		{
