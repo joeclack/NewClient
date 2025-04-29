@@ -16,15 +16,7 @@ namespace NewClient.Commands
 			Console.Write("Enter Sensor Number: ");
 			if ( int.TryParse(Console.ReadLine(), out int sensorId) )
 			{
-				try
-				{
-					double temperature = await _environmentController.GetSensorTemperature(sensorId);
-					Console.WriteLine($"Sensor {sensorId} Temperature: {temperature:F1}°C");
-				}
-				catch ( Exception ex )
-				{
-					Console.WriteLine($"Error: {ex.Message}");
-				}
+				double temperature = await _environmentController.GetSensorTemperature(sensorId);
 			}
 			else
 			{
