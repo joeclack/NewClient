@@ -3,6 +3,7 @@ using System;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using NewClient.Devices;
+using IHttpClientFactory = NewClient.Interfaces.IHttpClientFactory;
 
 namespace NewClient.Factories
 {
@@ -10,23 +11,24 @@ namespace NewClient.Factories
     // could probably add some validation or device-specific config here if needed
     public class DeviceFactory
     {
-        private readonly HttpClient _client;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger _logger;
 
-        public DeviceFactory(HttpClient client, ILogger logger)
+        public DeviceFactory(IHttpClientFactory httpClientFactory, ILogger logger)
         {
-            _client = client;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
         }
 
         // switch expression makes this nice and clean
         public IDevice CreateDevice(DeviceType type, int id)
         {
+            var client = _httpClientFactory.CreateClient();
             return type switch
             {
-                DeviceType.Fan => new FanDevice(_client, _logger, id),
-                DeviceType.Heater => new HeaterDevice(_client, _logger, id),
-                DeviceType.Sensor => new SensorDevice(_client, _logger, id),
+                DeviceType.Fan => new FanDevice(client, _logger, id),
+                DeviceType.Heater => new HeaterDevice(client, _logger, id),
+                DeviceType.Sensor => new SensorDevice(client, _logger, id),
                 _ => throw new ArgumentException($"Unknown device type: {type}")
             };
         }

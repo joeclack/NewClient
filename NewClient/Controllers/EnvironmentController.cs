@@ -2,12 +2,14 @@
 using Microsoft.Extensions.Logging;
 using NewClient.Factories;
 using NewClient.Interfaces;
+using System.Net.Http;
+using IHttpClientFactory = NewClient.Interfaces.IHttpClientFactory;
 
 namespace NewClient.Controllers
 {
 	public class EnvironmentController : IEnvironmentController
 	{
-		private readonly HttpClient _client;
+		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly ILogger<EnvironmentController> _logger;
 		private readonly int _numberOfFans;
 		private readonly int _numberOfHeaters;
@@ -19,16 +21,16 @@ namespace NewClient.Controllers
 		private readonly List<IDevice> _sensors;
 
 		public EnvironmentController(
-			HttpClient client,
+			IHttpClientFactory httpClientFactory,
 			ILogger<EnvironmentController> logger,
 			IConfiguration configuration)
 		{
-			_client = client;
+			_httpClientFactory = httpClientFactory;
 			_logger = logger;
 			_numberOfFans = configuration.GetValue<int>("Environment:NumberOfFans", 3);
 			_numberOfHeaters = configuration.GetValue<int>("Environment:NumberOfHeaters", 3);
 			_numberOfSensors = configuration.GetValue<int>("Environment:NumberOfSensors", 3);
-			_deviceFactory = new DeviceFactory(client, logger);
+			_deviceFactory = new DeviceFactory(_httpClientFactory, logger);
 
 			_fans = [];
 			_heaters = [];
@@ -323,7 +325,7 @@ namespace NewClient.Controllers
 			{
 				// simple reset endpoint - just tells the api to reset everything
 				// might want to add some kind of confirmation or safety check here
-				var response = await _client.PostAsync("api/Envo/reset", null);
+				var response = await _httpClientFactory.CreateClient().PostAsync("api/Envo/reset", null);
 				if (!response.IsSuccessStatusCode)
 				{
 					_logger.LogError("Failed to reset environment: {Reason}", response.ReasonPhrase);
