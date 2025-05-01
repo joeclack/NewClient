@@ -6,6 +6,8 @@ using NewClient.Devices;
 
 namespace NewClient.Factories
 {
+    // pretty simple factory - just creates the right device based on type
+    // could probably add some validation or device-specific config here if needed
     public class DeviceFactory
     {
         private readonly HttpClient _client;
@@ -17,6 +19,7 @@ namespace NewClient.Factories
             _logger = logger;
         }
 
+        // switch expression makes this nice and clean
         public IDevice CreateDevice(DeviceType type, int id)
         {
             return type switch
@@ -29,6 +32,7 @@ namespace NewClient.Factories
         }
     }
 
+    // might need to add more device types later if new hardware is added, but keeps it modular
     public enum DeviceType
     {
         Fan,

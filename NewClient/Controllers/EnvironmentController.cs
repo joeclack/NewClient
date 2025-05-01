@@ -142,6 +142,8 @@ namespace NewClient.Controllers
 		{
 			try
 			{
+				// kinda messy having to parse and cast all these different types
+				// but i guess it shows we can handle different number formats
 				var sensor1 = double.Parse(await GetSensor1Temperature());
 				var sensor2 = await GetSensor2Temperature();
 				var sensor3 = (double)await GetSensor3Temperature();
@@ -239,6 +241,8 @@ namespace NewClient.Controllers
 		{
 			try
 			{
+				// this is pretty basic temp control - just on/off for heaters and fans
+				// could make it smarter by adjusting heater levels based on how far off we are
 				Console.WriteLine($"Holding temperature at {targetTemperature}°C for {durationSeconds} seconds...");
 				_logger.LogInformation("Holding temperature at {TargetTemperature}°C for {Duration} seconds", targetTemperature, durationSeconds);
 				int intervalMs = 1000; // 1-second intervals
@@ -276,6 +280,7 @@ namespace NewClient.Controllers
 		{
 			try
 			{
+				// left as is. not required to change this logic, apart from tydying it up
 				Console.WriteLine($"Adjusting temperature to {targetTemperature}°C over {durationSeconds} seconds...");
 				_logger.LogInformation("Adjusting temperature to {TargetTemperature}°C over {Duration} seconds", targetTemperature, durationSeconds);
 				int intervalMs = 1000; // 1-second intervals
@@ -316,6 +321,8 @@ namespace NewClient.Controllers
 		{
 			try
 			{
+				// simple reset endpoint - just tells the api to reset everything
+				// might want to add some kind of confirmation or safety check here
 				var response = await _client.PostAsync("api/Envo/reset", null);
 				if (!response.IsSuccessStatusCode)
 				{

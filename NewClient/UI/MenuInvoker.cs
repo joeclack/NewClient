@@ -2,15 +2,20 @@
 
 namespace NewClient.UI
 {
+	// command pattern implementation
+	// keeps the menu logic separate from the actual commands
 	public class MenuInvoker
 	{
 		private readonly Dictionary<string, ICommand> _commands = [];
 
+		// maps menu options to their commands
 		public void SetCommand(string option, ICommand command)
 		{
 			_commands[option] = command;
 		}
 
+		// basic menu loop - keeps running until program ends
+		// might want to add an exit option at some point
 		public async Task RunMenuAsync()
 		{
 			while(true)
@@ -22,6 +27,7 @@ namespace NewClient.UI
 				Console.WriteLine(" 4. Display State of All Devices");
 				Console.WriteLine(" 5. Control Simulation");
 				Console.WriteLine(" 6. Reset Simulation");
+				Console.WriteLine(" 7. Exit");
 				Console.WriteLine("===============================");
 				Console.Write("Select an option: ");
 
@@ -30,6 +36,9 @@ namespace NewClient.UI
 				if(_commands.TryGetValue(input, out var command))
 				{
 					await command.ExecuteAsync();
+				}
+				if(input == "7") {
+					break;
 				}
 			}
 		}
