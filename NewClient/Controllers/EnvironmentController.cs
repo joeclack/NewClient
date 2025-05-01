@@ -11,6 +11,7 @@ namespace NewClient.Controllers
 		private readonly ILogger<EnvironmentController> _logger;
 		private readonly int _numberOfFans;
 		private readonly int _numberOfHeaters;
+		private readonly int _numberOfSensors;
 		private const int MaxHeaterLevel = 3;
 		private readonly DeviceFactory _deviceFactory;
 		private readonly List<IDevice> _fans;
@@ -26,27 +27,47 @@ namespace NewClient.Controllers
 			_logger = logger;
 			_numberOfFans = configuration.GetValue<int>("Environment:NumberOfFans", 3);
 			_numberOfHeaters = configuration.GetValue<int>("Environment:NumberOfHeaters", 3);
+			_numberOfSensors = configuration.GetValue<int>("Environment:NumberOfSensors", 3);
 			_deviceFactory = new DeviceFactory(client, logger);
 
-			// Initialize device collections
-			_fans = new List<IDevice>();
-			_heaters = new List<IDevice>();
-			_sensors = new List<IDevice>();
+			_fans = [];
+			_heaters = [];
+			_sensors = [];
+			SetDevices();
+		}
 
-			// Create devices
-			for (int i = 1; i <= _numberOfFans; i++)
-			{
-				_fans.Add(_deviceFactory.CreateDevice(DeviceType.Fan, i));
-			}
 
-			for (int i = 1; i <= _numberOfHeaters; i++)
+		// What I am doing here is basically creating all the devices based
+		// off the amount of devices in the config. 
+			
+		// i suppose there could be sensors that arent within the amount, so if 3 are 
+		// specified in the config, but someone knew that there was a 4th one,
+		// i dont think that would work, so they would have to sat 4 in the config
+		public void SetDevices()
+		{
+			foreach(var type in Enum.GetValues(typeof(DeviceType)))
 			{
-				_heaters.Add(_deviceFactory.CreateDevice(DeviceType.Heater, i));
-			}
-
-			for (int i = 1; i <= 3; i++) // Assuming 3 sensors
-			{
-				_sensors.Add(_deviceFactory.CreateDevice(DeviceType.Sensor, i));
+				switch ( type )
+				{
+					case DeviceType.Fan:
+						for ( int i = 1; i <= _numberOfFans; i++ )
+						{
+							_fans.Add(_deviceFactory.CreateDevice(DeviceType.Fan, i));
+						}
+						break;
+					case DeviceType.Sensor:
+						for ( int i = 1; i <= _numberOfSensors; i++ )
+						{
+							_sensors.Add(_deviceFactory.CreateDevice(DeviceType.Sensor, i));
+						}
+						break;
+					case DeviceType.Heater:
+						for ( int i = 1; i <= _numberOfHeaters; i++ )
+						{
+							_heaters.Add(_deviceFactory.CreateDevice(DeviceType.Heater, i));
+						}
+						break;
+				}
 			}
 		}
 

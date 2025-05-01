@@ -39,7 +39,8 @@ static class Program
 		{
 			BaseAddress = new Uri(baseAddress),
 		};
-		client.DefaultRequestHeaders.Add("X-Api-Key", configuration.GetValue<string>("APIKey"));
+		string apiKey = configuration.GetValue<string>("Environment:APIKey");
+		client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
 		EnvironmentController environment = new(client, logger, configuration);
 
