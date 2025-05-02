@@ -19,18 +19,27 @@ namespace NewClient.Devices
             Id = id;
         }
 
-        public async Task<bool> GetState()
+        public async Task<DeviceStateResult> GetState()
         {
             try
             {
                 var temp = await GetTemperature();
-                return temp > 0;
+                return new DeviceStateResult 
+                { 
+                    Temperature = temp,
+                    IsOn = temp > 0,
+                    HasError = false 
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
                 _logger.LogError("Failed to get sensor state for sensor {SensorId}", Id);
-                return false;
+                return new DeviceStateResult 
+                { 
+                    HasError = true, 
+                    ErrorMessage = ex.Message 
+                };
             }
         }
 
@@ -55,19 +64,16 @@ namespace NewClient.Devices
                 {
                     var tempString = await response.Content.ReadAsStringAsync();
                     var temperature = double.Parse(tempString);
-                    Console.WriteLine($"Sensor {Id} temperature: {temperature}°C");
                     _logger.LogInformation("Sensor {SensorId} temperature: {Temperature}°C", Id, temperature);
                     return temperature;
                 }
 
                 _logger.LogError("Failed to get temperature from sensor {SensorId}: {Reason}", Id, response.ReasonPhrase);
-                Console.WriteLine($"Error: Failed to get temperature from sensor {Id}: {response.ReasonPhrase}");
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                _logger.LogError("Failed to get temperature from sensor {SensorId}", Id);
+                _logger.LogError("Failed to get temperature from sensor {SensorId}: {Error}", Id, ex.Message);
                 return 0;
             }
         }

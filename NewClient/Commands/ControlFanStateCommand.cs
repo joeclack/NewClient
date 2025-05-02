@@ -19,8 +19,15 @@ namespace NewClient.Commands
 			{
 				Console.Write("Turn Fan On or Off? (on/off): ");
 				var stateInput = Console.ReadLine();
-				bool isOn = stateInput?.ToLower() == "on";
-				await _environmentController.SetFanState(fanId, isOn);
+				if ( stateInput?.ToLower() == "on" || stateInput?.ToLower() == "off" )
+				{
+					bool isOn = stateInput.ToLower() == "on";
+					await _environmentController.SetFanState(fanId, isOn);
+				}
+				else
+				{
+					Console.WriteLine("Invalid input. Please enter 'on' or 'off'.");
+				}
 			}
 			else
 			{

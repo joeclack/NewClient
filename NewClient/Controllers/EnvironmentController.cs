@@ -1,9 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NewClient.Devices;
 using NewClient.Factories;
 using NewClient.Interfaces;
 using System.Net.Http;
 using IHttpClientFactory = NewClient.Interfaces.IHttpClientFactory;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("NewClient.Tests")]
 
 namespace NewClient.Controllers
 {
@@ -11,14 +15,18 @@ namespace NewClient.Controllers
 	{
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly ILogger<EnvironmentController> _logger;
-		private readonly int _numberOfFans;
-		private readonly int _numberOfHeaters;
-		private readonly int _numberOfSensors;
-		private const int MaxHeaterLevel = 3;
+		public readonly int _numberOfFans;
+		public readonly int _numberOfHeaters;
+		public readonly int _numberOfSensors;
+		public const int MaxHeaterLevel = 3;
 		private readonly DeviceFactory _deviceFactory;
 		private readonly List<IDevice> _fans;
 		private readonly List<IDevice> _heaters;
 		private readonly List<IDevice> _sensors;
+
+		internal IReadOnlyList<IDevice> Fans => _fans;
+		internal IReadOnlyList<IDevice> Heaters => _heaters;
+		internal IReadOnlyList<IDevice> Sensors => _sensors;
 
 		public EnvironmentController(
 			IHttpClientFactory httpClientFactory,
@@ -26,15 +34,15 @@ namespace NewClient.Controllers
 			IConfiguration configuration)
 		{
 			_httpClientFactory = httpClientFactory;
-			_logger = logger;
-			_numberOfFans = configuration.GetValue<int>("Environment:NumberOfFans", 3);
-			_numberOfHeaters = configuration.GetValue<int>("Environment:NumberOfHeaters", 3);
-			_numberOfSensors = configuration.GetValue<int>("Environment:NumberOfSensors", 3);
-			_deviceFactory = new DeviceFactory(_httpClientFactory, logger);
+			_logger            = logger;
+			_numberOfFans      = configuration.GetValue("Environment:NumberOfFans", 3);
+			_numberOfHeaters   = configuration.GetValue("Environment:NumberOfHeaters", 3);
+			_numberOfSensors   = configuration.GetValue("Environment:NumberOfSensors", 3);
+			_deviceFactory     = new DeviceFactory(_httpClientFactory, logger);
 
-			_fans = [];
-			_heaters = [];
-			_sensors = [];
+			_fans              = [];
+			_heaters           = [];
+			_sensors           = [];
 			SetDevices();
 		}
 
@@ -81,6 +89,7 @@ namespace NewClient.Controllers
 			}
 
 			await _fans[fanId - 1].SetState(isOn);
+			Console.WriteLine($"Fan {fanId} has been turned {(isOn ? "On" : "Off")}");
 		}
 
 		public async Task SetHeaterLevel(int heaterId, int level)
@@ -95,16 +104,22 @@ namespace NewClient.Controllers
 			}
 
 			await _heaters[heaterId - 1].SetLevel(level);
+			_logger.LogInformation("Heater {HeaterId} level set to {Level}", heaterId, level);
 		}
 
-		public async Task<bool> GetFanState(int id)
+		public async Task<DeviceStateResult> GetFanState(int id)
 		{
 			if (id < 1 || id > _numberOfFans)
 			{
 				throw new ArgumentOutOfRangeException(nameof(id), $"Fan ID must be between 1 and {_numberOfFans}");
 			}
 
-			return await _fans[id - 1].GetState();
+			var result = await _fans[id - 1].GetState();
+			if (!result.HasError)
+			{
+				Console.WriteLine($"Fan {id} is {(result.IsOn ? "On" : "Off")}");
+			}
+			return result;
 		}
 
 		public async Task<int> GetHeaterLevel(int id)
@@ -114,12 +129,16 @@ namespace NewClient.Controllers
 				throw new ArgumentOutOfRangeException(nameof(id), $"Heater ID must be between 1 and {_numberOfHeaters}");
 			}
 
-			return await _heaters[id - 1].GetLevel();
+			var level = await _heaters[id - 1].GetLevel();
+			Console.WriteLine($"Heater {id} is at level {level}");
+			return level;
 		}
 
 		public async Task<double> GetSensorTemperature(int sensorId)
 		{
-			return await _sensors[sensorId - 1].GetTemperature();
+			var temp = await _sensors[sensorId - 1].GetTemperature();
+			Console.WriteLine($"Sensor {sensorId} temperature: {temp}°C");
+			return temp;
 		}
 
 		public async Task<string> GetSensor1Temperature()
@@ -145,7 +164,7 @@ namespace NewClient.Controllers
 			try
 			{
 				// kinda messy having to parse and cast all these different types
-				// but i guess it shows we can handle different number formats
+				
 				var sensor1 = double.Parse(await GetSensor1Temperature());
 				var sensor2 = await GetSensor2Temperature();
 				var sensor3 = (double)await GetSensor3Temperature();
@@ -175,6 +194,7 @@ namespace NewClient.Controllers
 				{
 					await heater.SetLevel(level);
 				}
+				Console.WriteLine($"All heaters have been set to level {level}");
 				_logger.LogInformation("All heaters set to level {Level}", level);
 			}
 			catch (Exception ex)
@@ -192,6 +212,7 @@ namespace NewClient.Controllers
 				{
 					await fan.SetState(state);
 				}
+				Console.WriteLine($"All fans have been turned {(state ? "On" : "Off")}");
 				_logger.LogInformation("All fans turned {State}", state ? "On" : "Off");
 			}
 			catch (Exception ex)
@@ -210,8 +231,16 @@ namespace NewClient.Controllers
 				for (int i = 0; i < _fans.Count; i++)
 				{
 					var fanState = await _fans[i].GetState();
-					Console.WriteLine($"  Fan {i + 1}: {(fanState ? "On" : "Off")}");
-					_logger.LogInformation("Fan {FanId}: {State}", i + 1, fanState ? "On" : "Off");
+					if (fanState.HasError)
+					{
+						Console.WriteLine($"  Fan {i + 1}: Error - {fanState.ErrorMessage}");
+						_logger.LogError("Fan {FanId}: Error - {ErrorMessage}", i + 1, fanState.ErrorMessage);
+					}
+					else
+					{
+						Console.WriteLine($"  Fan {i + 1}: {(fanState.IsOn ? "On" : "Off")}");
+						_logger.LogInformation("Fan {FanId}: {State}", i + 1, fanState.IsOn ? "On" : "Off");
+					}
 				}
 
 				Console.WriteLine("\nFetching heater levels individually...");

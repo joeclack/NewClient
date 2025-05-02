@@ -1,12 +1,14 @@
 using System.Threading.Tasks;
+using System.Net.Http;
+using NewClient.Interfaces;
 
-namespace NewClient.Controllers
+namespace NewClient.Interfaces
 {
     public interface IEnvironmentController
     {
         Task SetFanState(int fanId, bool isOn);
         Task SetHeaterLevel(int heaterId, int level);
-        Task<bool> GetFanState(int id);
+        Task<DeviceStateResult> GetFanState(int id);
         Task<int> GetHeaterLevel(int id);
         Task<double> GetSensorTemperature(int sensorId);
         Task<double> GetAverageTemperature();

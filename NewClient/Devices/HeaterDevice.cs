@@ -20,18 +20,17 @@ namespace NewClient.Devices
             Id = id;
         }
 
-        public async Task<bool> GetState()
+        public async Task<DeviceStateResult> GetState()
         {
             try
             {
                 var level = await GetLevel();
-                return level > 0;
+                return new DeviceStateResult { IsOn = level > 0, HasError = false };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                _logger.LogError("Failed to get heater state for heater {HeaterId}", Id);
-                return false;
+                _logger.LogError("Failed to get heater state for heater {HeaterId}: {Error}", Id, ex.Message);
+                return new DeviceStateResult { HasError = true, ErrorMessage = ex.Message };
             }
         }
 
@@ -43,8 +42,7 @@ namespace NewClient.Devices
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                _logger.LogError("Failed to set heater state for heater {HeaterId}", Id);
+                _logger.LogError("Failed to set heater state for heater {HeaterId}: {Error}", Id, ex.Message);
             }
         }
 
@@ -56,7 +54,6 @@ namespace NewClient.Devices
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("Failed to get heater level for heater {HeaterId}: {Reason}", Id, response.ReasonPhrase);
-                    Console.WriteLine($"Error: Failed to get heater level for heater {Id}: {response.ReasonPhrase}");
                     return 0;
                 }
 
@@ -67,8 +64,7 @@ namespace NewClient.Devices
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                _logger.LogError("Failed to get heater level for heater {HeaterId}", Id);
+                _logger.LogError("Failed to get heater level for heater {HeaterId}: {Error}", Id, ex.Message);
                 return 0;
             }
         }
@@ -77,7 +73,7 @@ namespace NewClient.Devices
         {
             if (level < 0 || level > MaxLevel)
             {
-                Console.WriteLine($"Error: Heater level must be between 0 and {MaxLevel}");
+                _logger.LogError("Heater level must be between 0 and {MaxLevel}", MaxLevel);
                 return;
             }
 
@@ -88,19 +84,13 @@ namespace NewClient.Devices
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("Failed to set heater level for heater {HeaterId}: {Reason}", Id, response.ReasonPhrase);
-                    Console.WriteLine($"Error: Failed to set heater level for heater {Id}: {response.ReasonPhrase}");
                     return;
                 }
-                else
-                {
-                    Console.WriteLine($"Heater {Id} has been set to level {level}.");
-                    _logger.LogInformation($"Heater {Id} has been set to level {level}.");
-                }
+                _logger.LogInformation("Heater {HeaterId} has been set to level {Level}", Id, level);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                _logger.LogError("Failed to set heater level for heater {HeaterId}", Id);
+                _logger.LogError("Failed to set heater level for heater {HeaterId}: {Error}", Id, ex.Message);
             }
         }
 

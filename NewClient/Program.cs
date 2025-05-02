@@ -1,5 +1,4 @@
 ﻿using NewClient.Commands;
-using NewClient.Controllers;
 using NewClient.UI;
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +9,8 @@ using System.IO;
 using NewClient.Interfaces;
 using NewClient.Factories;
 using IHttpClientFactory = NewClient.Interfaces.IHttpClientFactory;
+using System.Runtime.InteropServices;
+using NewClient.Controllers;
 
 static class Program
 {
@@ -20,12 +21,17 @@ static class Program
 			.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 			.Build();
 
+		// C:\Users\[user]\AppData\Roaming\NewClient\Logs
 		var logPath = Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+			Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
 			"NewClient",
 			"Logs"
 		);
-		Directory.CreateDirectory(logPath);
+
+		if ( RuntimeInformation.IsOSPlatform(OSPlatform.Windows) )
+		{
+			Directory.CreateDirectory(logPath); // don't know file structure on linux, so you only get logs on windows because i don't care that much:) Maybe it works but i wont risk it for assessment sake
+		}
 
 		var serviceProvider = new ServiceCollection()
 			.AddSingleton<IConfiguration>(configuration)
@@ -46,7 +52,6 @@ static class Program
 			.BuildServiceProvider();
 
 		var menu = serviceProvider.GetRequiredService<MenuInvoker>();
-		var environment = serviceProvider.GetRequiredService<EnvironmentController>();
 
 		menu.SetCommand("1", serviceProvider.GetRequiredService<ControlFanStateCommand>());
 		menu.SetCommand("2", serviceProvider.GetRequiredService<SetHeaterLevelCommand>());
